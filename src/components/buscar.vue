@@ -141,7 +141,7 @@
 </style>
 <script>
     import servicios from '@/components/servicios.vue';
-    import API_BASE_URL from '@/config/api';
+    import API_BASE_URL from './config/api'; 
     
     export default{
         name: 'buscarCenso',
