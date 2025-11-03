@@ -141,6 +141,8 @@
 </style>
 <script>
     import servicios from '@/components/servicios.vue';
+    import API_BASE_URL from '@/config/api';
+    
     export default{
         name: 'buscarCenso',
         description: 'Componente para buscar registros por fecha y servicio',
@@ -185,7 +187,7 @@
                     //console.log("data", data);
                     this.loading = true;
                     this.error = null;
-                    fetch('/api/buscar', {
+                    fetch(`${API_BASE_URL}/buscar`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
