@@ -30,7 +30,7 @@
 </template>
 
 <script>
-    import API_BASE_URL from 'config/api'; 
+    import API_BASE_URL from '@/config/api.js'; 
     export default{
         name: 'serviciosHospital',
         description: 'Componente que maneja los servicios',
