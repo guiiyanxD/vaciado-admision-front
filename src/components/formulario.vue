@@ -320,6 +320,7 @@
 <script>
     import diaAnterior from '@/components/diaAnterior.vue';
     import servicios from '@/components/servicios.vue';
+    import API_BASE_URL from './config/api'; 
     export default{
         data(){
             return{
@@ -378,7 +379,8 @@
                     tipo_ingreso4: this.censo.tipo_ingreso4,
                     tipo_ingreso5: this.censo.tipo_ingreso5
                 };
-                fetch('/api/verificarYGuardar', {
+                //fetch('/api/verificarYGuardar', {
+                fetch( `${API_BASE_URL}/verificarYGuardar`, {
                     method: 'POST',
                     headers: {
                        "Content-Type": "application/json"
@@ -399,7 +401,7 @@
                 this.camasLibres = 0;
             },
             getServicios(){
-                fetch('/api/servicios')
+                fetch(`${API_BASE_URL}/servicios`)
                 .then(response => response.json())
                 .then(data => {
                     this.servicios = [];
@@ -413,7 +415,7 @@
                 });
             },
             getEspecialidades(){
-                fetch('/api/especialidades')
+                fetch(`${API_BASE_URL}/especialidades`)
                 .then(response => response.json())
                 .then(data => {
                     this.especialidades = [];
