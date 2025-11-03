@@ -30,6 +30,7 @@
 </template>
 
 <script>
+    import API_BASE_URL from 'config/api'; 
     export default{
         name: 'serviciosHospital',
         description: 'Componente que maneja los servicios',
@@ -56,7 +57,8 @@
         emits: ['update:modelValue'],
         methods: {
             fetchServicios(){
-                fetch('/api/servicios')
+                //fetch('/api/servicios')
+                fetch(`${API_BASE_URL}/servicios`)
                 .then(response => response.json())
                 .then(data => {
                     this.servicios = data.data;
