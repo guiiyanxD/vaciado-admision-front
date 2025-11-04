@@ -16,6 +16,7 @@
     </div>
 </template>
 <script>
+import API_BASE_URL from './config/api'; 
     export default{
         name: 'diaAnterior',
         description: 'Componente que calcula el día anterior a la fecha actual',
@@ -60,7 +61,7 @@
                     // Set totalAyer to 0 to show a "loading" message
                     this.totalAyer = -1; 
                     
-                    fetch(`/api/totalAyer2`, { // Corrected URL: /api/totalAyer
+                    fetch(`${API_BASE_URL}/totalAyer2`, { // Corrected URL: /api/totalAyer
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
