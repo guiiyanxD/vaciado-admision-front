@@ -219,82 +219,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <div class="row g-2 mb-3">
-                                            <small>Camas Prestadas 4</small>
-                                            <div class="col-md">
-                                                <div class="form-floating"> 
-                                                    <select 
-                                                        class="form-select"
-                                                        name="especialidad4" 
-                                                        v-model="censo.especialidad4"
-                                                        id="especialidad4">
-                                                        <option disabled selected value="null">Seleccione</option>
-                                                        <option v-for="especialidad in especialidades" :key="especialidad.id" :value="especialidad.nombre">
-                                                            {{ especialidad.nombre }}
-                                                        </option>
-                                                    </select>
-                                                    <label for="especialidad4">Especialidad:</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md">
-                                                <div class="form-floating"> 
-                                                    <input class="form-control" type="number" id="cantidad4" name="cantidad4" v-model="censo.cantidad4" autofocus  >
-                                                    <label for="cantidad">Cantidad:</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md">
-                                                <div class="form-floating"> 
-                                                    <select 
-                                                        class="form-select"
-                                                        name="tipo_ingreso4" 
-                                                        v-model="censo.tipo_ingreso4"
-                                                        id="tipo_ingreso4">
-                                                        <option disabled selected value="null">Seleccione</option>
-                                                        <option value="DIRECTO">DIRECTO</option>
-                                                        <option value="TRASLADO">TRASLADO</option>
-                                                    </select>
-                                                    <label for="tipo_ingreso4">Tipo de Ingreso:</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row g-2 mb-3">
-                                            <small>Camas Prestadas 5</small>
-                                            <div class="col-md">
-                                                <div class="form-floating"> 
-                                                    <select 
-                                                        class="form-select"
-                                                        name="especialidad5" 
-                                                        v-model="censo.especialidad5"
-                                                        id="especialidad5">
-                                                        <option disabled selected value="null">Seleccione</option>
-                                                        <option v-for="especialidad in especialidades" :key="especialidad.id" :value="especialidad.nombre">
-                                                            {{ especialidad.nombre }}
-                                                        </option>
-                                                    </select>
-                                                    <label for="especialidad5">Especialidad:</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md">
-                                                <div class="form-floating"> 
-                                                    <input class="form-control" type="number" id="cantidad5" name="cantidad5" v-model="censo.cantidad5" autofocus  >
-                                                    <label for="cantidad5">Cantidad:</label>
-                                                </div>
-                                            </div>
-                                            <div class="col-md">
-                                                <div class="form-floating"> 
-                                                    <select 
-                                                        class="form-select"
-                                                        name="tipo_ingreso5" 
-                                                        v-model="censo.tipo_ingreso5"
-                                                        id="tipo_ingreso5">
-                                                        <option disabled selected value="null">Seleccione</option>
-                                                        <option value="DIRECTO">DIRECTO</option>
-                                                        <option value="TRASLADO">TRASLADO</option>
-                                                    </select>
-                                                    <label for="tipo_ingreso5">Tipo de Ingreso:</label>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                                 <div class="row g-2 mb-3 text-center">
@@ -366,18 +290,15 @@
                     especialidad1: this.censo.especialidad1,
                     especialidad2: this.censo.especialidad2,
                     especialidad3: this.censo.especialidad3,
-                    especialidad4: this.censo.especialidad4,
-                    especialidad5: this.censo.especialidad5,
+                   
                     cantidad1: this.censo.cantidad1,
                     cantidad2: this.censo.cantidad2,
                     cantidad3: this.censo.cantidad3,
-                    cantidad4: this.censo.cantidad4,
-                    cantidad5: this.censo.cantidad5,
+                  
                     tipo_ingreso1: this.censo.tipo_ingreso1,    
                     tipo_ingreso2: this.censo.tipo_ingreso2,
                     tipo_ingreso3: this.censo.tipo_ingreso3,
-                    tipo_ingreso4: this.censo.tipo_ingreso4,
-                    tipo_ingreso5: this.censo.tipo_ingreso5
+                  
                 };
                 //fetch('/api/verificarYGuardar', {
                 fetch( `${API_BASE_URL}/verificarYGuardar`, {
