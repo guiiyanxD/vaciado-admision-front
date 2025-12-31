@@ -1,5 +1,6 @@
 <template>
     <div class="container">
+        
         <div class="row">
             <div class="col-md-12">
                 <div class="text-center">
@@ -211,6 +212,7 @@
     import diaAnterior from '@/components/diaAnterior.vue';
     import servicios from '@/components/servicios.vue';
     import API_BASE_URL from './config/api'; 
+    import { useToast } from 'vue-toastification'
 
     export default {
         name: 'formularioVaciado',
@@ -219,10 +221,11 @@
             diaAnterior,
             servicios
         },
-
+        mounted() {
+            this.toast = useToast();
+        },
         data() {
             return {
-                // Datos principales del censo
                 censo: {
                     fecha: null,
                     servicio: null,
@@ -238,15 +241,16 @@
                     dotacion: 0
                 },
                 
-                // Array dinámico de camas prestadas
                 camasPrestadas: [],
                 
-                // Catálogos
                 servicios: [],
                 especialidades: [],
                 
-                // Cálculo de camas libres
-                camasLibres: 0
+                camasLibres: 0,
+                //toastClass: null,
+                //toastIcon: null,
+                //toastMessage:null
+
             }
         },
 
@@ -309,16 +313,13 @@
             // ========== GUARDAR DATOS ==========
             
             verificaGuarda() {
-                // Validar camas prestadas si existen
                 if (this.camasPrestadas.length > 0) {
                     if (!this.validarCamasPrestadas()) {
                         return;
                     }
                 }
 
-                // Construir objeto de datos para enviar al backend
                 const data = {
-                    // Datos del censo principal
                     censo: {
                         fecha: this.censo.fecha,
                         servicio: this.censo.servicio,
@@ -333,7 +334,6 @@
                         libre: this.camasLibres,
                         dotacion: this.censo.dotacion
                     },
-                    // Array de camas prestadas (solo las válidas)
                     camasPrestadas: this.obtenerCamasPrestadasValidas()
                 };
 
@@ -348,14 +348,16 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data.status === 'failed') {
-                        alert('Error al guardar: ' + data.message);
+                        this.toast.error(data.message);
                     } else {
-                        alert('Datos guardados exitosamente: ' + data.message);
+                        this.toast.success(data.message);
                         this.limpiarFormulario();
                     }
                 })
                 .catch((error) => {
-                    alert('Error en la conexión: ' + error);
+                    this.$toast.error('Error en la conexión: ' + error, {
+                    timeout: 5000
+                    });
                 });
             },
 
