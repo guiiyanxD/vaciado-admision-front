@@ -9,7 +9,15 @@
             </div>
         </div>
         <div class="row">
+            <div class="row">
+                <div class="col-md-12">   
+                    <input type="checkbox" id="rangoFechas" name="RangoFechas" v-model="this.rangoFechas"/>
+                    <label for="rangoFechas">Rango de fechas</label>
+
+                </div>
+            </div>
             <div class="col-md-2">
+
                 <div class="card">
                     <div class="card-header">
                         <h3 class="text-center">Datos a buscar</h3>
@@ -32,18 +40,20 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="row g-2 mb-3">
-                                <div class="col-md">
-                                    <div class="form-floating"> 
-                                        <input 
-                                            class="form-control" 
-                                            type="date" 
-                                            id="fechaFin" 
-                                            name="fechaFin" 
-                                            v-model="this.fechaFin"  
-                                            required
-                                        >
-                                        <label for="fecha">Fecha Fin:</label>  
+                            <div v-if="rangoFechas"> 
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md">
+                                        <div class="form-floating"> 
+                                            <input 
+                                                class="form-control" 
+                                                type="date" 
+                                                id="fechaFin" 
+                                                name="fechaFin" 
+                                                v-model="this.fechaFin"  
+                                                required
+                                            >
+                                            <label for="fecha">Fecha Fin:</label>  
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -154,6 +164,7 @@
                 resultados: [],
                 loading: false,
                 error: false,
+                rangoFechas: false,
             }
         },
         props: {
