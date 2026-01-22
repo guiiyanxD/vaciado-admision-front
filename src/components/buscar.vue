@@ -9,14 +9,8 @@
             </div>
         </div>
         <div class="row">
-            <div class="row">
-                <div class="col-md-12">   
-                    <input type="checkbox" id="rangoFechas" name="RangoFechas" v-model="this.rangoFechas"/>
-                    <label for="rangoFechas">Rango de fechas</label>
-
-                </div>
-            </div>
-            <div class="col-md-2">
+            
+            <div class="col-md-3">
 
                 <div class="card">
                     <div class="card-header">
@@ -65,6 +59,30 @@
                                 </div>
                             </div>
                             <div class="row g-2 mb-3">
+                                <div class="col-md"> 
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox" 
+                                        id="rangoFechas" 
+                                        name="RangoFechas" 
+                                        v-model="this.rangoFechas"
+                                    />
+                                    <label for="rangoFechas">Rango de fechas</label>
+                                </div>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-md"> 
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox" 
+                                        id="agruparMes" 
+                                        name="AgruparMes" 
+                                        v-model="this.agruparMes"
+                                    />
+                                    <label for="agruparMes"> Agrupar por mes</label>
+                                </div>
+                            </div>
+                            <div class="row g-2 mb-3">
                                 <div class="col-md">
                                     <div class="form-floating"> 
                                     <div class="d-grid gap-3">
@@ -77,7 +95,7 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-10">
+            <div class="col-md-9">
                 <div v-if="this.error">
                     <div class="card">
                         <div class="card-header bg-danger text-white">
@@ -105,7 +123,7 @@
                                 <td>Aislamiento</td>
                                 <td>Bloqueada</td>
                                 <td>Total</td>
-                                <td>Acciones</td>
+                                <!-- <td>Acciones</td> --> 
 
                             </tr>  
                         </thead>
@@ -114,14 +132,14 @@
                                 <td>{{ fila.fecha }}</td>
                                 <td>{{ fila.servicio }}</td>
                                 <td>{{ fila.ingreso }}</td>
-                                <td>{{ fila.ing_traslado }}</td>
+                                <td>{{ fila.ingreso_traslado }}</td>
                                 <td>{{ fila.egreso }}</td>
                                 <td>{{ fila.egreso_traslado }}</td>
                                 <td>{{ fila.obito }}</td>
                                 <td>{{ fila.aislamiento }}</td>
                                 <td>{{ fila.bloqueada }}</td>
                                 <td>{{ fila.total }}</td>
-                                <td><button class="btn btn-light">Editar</button></td>
+                                <!-- <td><button class="btn btn-light">Editar</button></td> --> 
                             </tr>   
                         </tbody>
                     </table>
@@ -165,6 +183,7 @@
                 loading: false,
                 error: false,
                 rangoFechas: false,
+                agruparMes: false,
             }
         },
         props: {
@@ -182,18 +201,20 @@
              * @returns true si la fechaInicio es menor a la fichaFin
              */
             verificarFechas(){
-                console.log(this.fechaInicio <= this.fechaFin);
+                //console.log(this.fechaInicio <= this.fechaFin);
                 return this.fechaInicio <= this.fechaFin;
             },
             buscarRegistros(){
                 this.resultados = [];
-                if( this.verificarFechas() && (this.fechaInicio && this.fechaFin)){
+                if( (this.fechaInicio && this.servicioBuscar)){
                 //if( this.error){
                     console.log(this.error + " ERROR <-");
                     var data = {
                         fechaInicio: this.fechaInicio,
                         fechaFin: this.fechaFin ?? null,
-                        servicioBuscar: this.servicioBuscar
+                        servicioBuscar: this.servicioBuscar,
+                        agruparMes: this.agruparMes ?? false,
+                        rangoFechas: this.rangoFechas ?? false
                     };
                     //console.log("data", data);
                     this.loading = true;
