@@ -192,31 +192,28 @@
                 default: () => []
             }
         },
-        created(){
-            
-        },
         methods: {
             /**
              * Comprueba que la fechaInicio sea menor a la fechaFin
              * @returns true si la fechaInicio es menor a la fichaFin
              */
             verificarFechas(){
-                //console.log(this.fechaInicio <= this.fechaFin);
                 return this.fechaInicio <= this.fechaFin;
             },
+
+            /**
+             * Realiza la busqueda de registros segun los parametros seleccionados
+             */
             buscarRegistros(){
                 this.resultados = [];
                 if( (this.fechaInicio && this.servicioBuscar)){
-                //if( this.error){
-                    console.log(this.error + " ERROR <-");
                     var data = {
                         fechaInicio: this.fechaInicio,
-                        fechaFin: this.fechaFin ?? null,
+                        fechaFin: !this.rangoFechas ? null : this.fechaFin,
                         servicioBuscar: this.servicioBuscar,
                         agruparMes: this.agruparMes ?? false,
                         rangoFechas: this.rangoFechas ?? false
                     };
-                    //console.log("data", data);
                     this.loading = true;
                     this.error = null;
                     fetch(`${API_BASE_URL}/buscar`, {
@@ -228,20 +225,16 @@
                     })
                     .then(response => response.json())
                     .then(data => {
-                        console.log("data:",  data);
                         this.resultados = data.data || null;
                         this.loading = false;
                     })
                 } else {
                     this.error = 'Por favor, seleccione una fecha y un servicio';
-                    
-                    //console.log(this.error);
                 }
             }
         },
         components:{
             servicios,
-
         }
     }
 </script>
