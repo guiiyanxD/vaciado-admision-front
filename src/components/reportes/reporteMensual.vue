@@ -112,6 +112,23 @@
                       <td>{{ fila.uti_adultos }}</td>
                       <td>{{ fila.total }}</td>
                     </tr>
+                    <!-- Fila de totales -->
+                    <tr class="totals-row" v-if="datosReporte[movimientoActivo] && datosReporte[movimientoActivo].length > 0">
+                      <td><strong>TOTAL</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).medicina_interna }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).medicina_cirugia }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).infectologia }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).pabellon }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).neuro_trauma }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).ginecologia }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).neonatologia }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).pediatria }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).onco_pediatria }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).ucim }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).uti_pediatria }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).uti_adultos }}</strong></td>
+                      <td><strong>{{ calcularTotales(datosReporte[movimientoActivo]).total }}</strong></td>
+                    </tr>
                   </tbody>
                 </table>
               </div>
@@ -128,8 +145,11 @@
 
 <script setup>
 import { ref } from 'vue';
-import { jsPDF } from 'jspdf'; 
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+
+// Asegúrate de que esta constante esté definida en tu proyecto
+// o reemplázala con tu URL base
 import API_BASE_URL from '../config/api'; 
 
 // Estado reactivo
@@ -147,14 +167,66 @@ const movimientos = [
   { key: 'egreso', label: 'Egreso' },
   { key: 'egreso_traslado', label: 'Egreso por Traslado' },
   { key: 'obito', label: 'Óbito' },
-  { key: 'aislamiento', label: 'Camas en Aislamiento' },
-  { key: 'bloqueada', label: 'Camas Bloqueadas' },
+  { key: 'aislamiento', label: 'Aislamiento' },
+  { key: 'bloqueada', label: 'Bloqueada' },
   { key: 'total', label: 'Total' }
 ];
 
 // Función para obtener el label de un movimiento
 const getMovimientoLabel = (key) => {
   return movimientos.find(m => m.key === key)?.label || key;
+};
+
+// Función para calcular totales de una tabla
+const calcularTotales = (datos) => {
+  if (!datos || datos.length === 0) {
+    return {
+      medicina_interna: 0,
+      medicina_cirugia: 0,
+      infectologia: 0,
+      pabellon: 0,
+      neuro_trauma: 0,
+      ginecologia: 0,
+      neonatologia: 0,
+      pediatria: 0,
+      onco_pediatria: 0,
+      ucim: 0,
+      uti_pediatria: 0,
+      uti_adultos: 0,
+      total: 0
+    };
+  }
+
+  return datos.reduce((totales, fila) => {
+    totales.medicina_interna += Number(fila.medicina_interna) || 0;
+    totales.medicina_cirugia += Number(fila.medicina_cirugia) || 0;
+    totales.infectologia += Number(fila.infectologia) || 0;
+    totales.pabellon += Number(fila.pabellon) || 0;
+    totales.neuro_trauma += Number(fila.neuro_trauma) || 0;
+    totales.ginecologia += Number(fila.ginecologia) || 0;
+    totales.neonatologia += Number(fila.neonatologia) || 0;
+    totales.pediatria += Number(fila.pediatria) || 0;
+    totales.onco_pediatria += Number(fila.onco_pediatria) || 0;
+    totales.ucim += Number(fila.ucim) || 0;
+    totales.uti_pediatria += Number(fila.uti_pediatria) || 0;
+    totales.uti_adultos += Number(fila.uti_adultos) || 0;
+    totales.total += Number(fila.total) || 0;
+    return totales;
+  }, {
+    medicina_interna: 0,
+    medicina_cirugia: 0,
+    infectologia: 0,
+    pabellon: 0,
+    neuro_trauma: 0,
+    ginecologia: 0,
+    neonatologia: 0,
+    pediatria: 0,
+    onco_pediatria: 0,
+    ucim: 0,
+    uti_pediatria: 0,
+    uti_adultos: 0,
+    total: 0
+  });
 };
 
 // Función para generar el reporte
@@ -169,66 +241,32 @@ const generarReporte = async () => {
     fechaFin: fechaFin.value
   };
 
-  const validarFechas = () => {
-  const inicio = new Date(fechaInicio.value)
-  const fin = new Date(fechaFin.value)
-  const hoy = new Date()
-  
-  // Validar que fecha fin no sea anterior a inicio
-  if (fin < inicio) {
-    error.value = 'La fecha fin no puede ser anterior a la fecha inicio'
-    return false
-  }
-  
-  // Validar que no exceda un año
-  const diffTime = Math.abs(fin - inicio)
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-  if (diffDays > 365) {
-    error.value = 'El rango no puede exceder 365 días'
-    return false
-  }
-  
-  // Validar que no sean fechas futuras
-  if (inicio > hoy || fin > hoy) {
-    error.value = 'No se pueden seleccionar fechas futuras'
-    return false
-  }
-  
-  return true
-}
-
   loading.value = true;
   error.value = null;
   datosReporte.value = null;
-    if (validarFechas()) {
-        try {
-            const response = await fetch(`${API_BASE_URL}/reporte-mensual`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-            });
 
-            const result = await response.json();
-            console.log('Respuesta del servidor:', result);
+  try {
+    const response = await fetch(`${API_BASE_URL}/reporte-mensual`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
 
-            if (result.status === 'success') {
-            datosReporte.value = result.data;
-            } else {
-            error.value = result.message || 'Error al obtener el reporte';
-            }
-        } catch (err) {
-            error.value = 'Error de conexión con el servidor';
-            console.error('Error:', err);
-        } finally {
-            loading.value = false;
-        }
-    }else{
-        loading.value = false;
-        return;
+    const result = await response.json();
+
+    if (result.status === 'success') {
+      datosReporte.value = result.data;
+    } else {
+      error.value = result.message || 'Error al obtener el reporte';
     }
-  
+  } catch (err) {
+    error.value = 'Error de conexión con el servidor';
+    console.error('Error:', err);
+  } finally {
+    loading.value = false;
+  }
 };
 
 // Función para descargar el PDF
@@ -307,6 +345,27 @@ const descargarPDF = () => {
       fila.total || 0
     ]);
 
+    // Calcular totales
+    const totales = calcularTotales(datos);
+    
+    // Agregar fila de totales
+    tableData.push([
+      'TOTAL',
+      totales.medicina_interna,
+      totales.medicina_cirugia,
+      totales.infectologia,
+      totales.pabellon,
+      totales.neuro_trauma,
+      totales.ginecologia,
+      totales.neonatologia,
+      totales.pediatria,
+      totales.onco_pediatria,
+      totales.ucim,
+      totales.uti_pediatria,
+      totales.uti_adultos,
+      totales.total
+    ]);
+
     // Generar tabla con autoTable
     doc.autoTable({
       startY: 28,
@@ -332,6 +391,16 @@ const descargarPDF = () => {
       alternateRowStyles: {
         fillColor: [245, 245, 245]
       },
+      // Estilos para la última fila (totales)
+      didParseCell: function(data) {
+        // La última fila es la de totales
+        if (data.row.index === tableData.length - 1) {
+          data.cell.styles.fillColor = [102, 126, 234]; // Color azul (#667eea)
+          data.cell.styles.textColor = [255, 255, 255]; // Texto blanco
+          data.cell.styles.fontStyle = 'bold';
+          data.cell.styles.fontSize = 9;
+        }
+      },
       margin: { top: 28, left: 14, right: 14 }
     });
 
@@ -340,7 +409,7 @@ const descargarPDF = () => {
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
     doc.text(
-      `Página ${pageCount} - Generado por Williams Alvarez Zabala, el ${new Date().toLocaleDateString()}`,
+      `Página ${pageCount} - Generado el ${new Date().toLocaleDateString()}`,
       14,
       doc.internal.pageSize.height - 10
     );
@@ -583,6 +652,20 @@ const descargarPDF = () => {
 .data-table td:last-child {
   font-weight: 600;
   background-color: #f0f0f0;
+}
+
+.data-table .totals-row {
+  background-color: #667eea !important;
+  color: white;
+  font-weight: bold;
+  border-top: 3px solid #333;
+}
+
+.data-table .totals-row td {
+  background-color: #667eea !important;
+  color: white;
+  font-size: 14px;
+  padding: 12px 8px;
 }
 
 .no-data {
