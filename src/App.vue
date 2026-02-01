@@ -16,6 +16,9 @@
         <li class="nav-item">
           <a class="nav-link" href="#">  <router-link style="text-decoration: none; color: aliceblue; " to="/buscar">Buscar</router-link></a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">  <router-link style="text-decoration: none; color: aliceblue; " to="/reportes/mensual">📊 Reporte Mensual</router-link></a>
+        </li>
       </ul>
     </div>
   </div>
