@@ -147,6 +147,7 @@
 import { ref } from 'vue';
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
+import imgMarcaAgua from '@/assets/cps_logo.png';
 
 // Asegúrate de que esta constante esté definida en tu proyecto
 // o reemplázala con tu URL base
@@ -159,6 +160,7 @@ const loading = ref(false);
 const error = ref(null);
 const datosReporte = ref(null);
 const movimientoActivo = ref('ingreso');
+const canvas = document.createElement('canvas');
 
 // Definición de movimientos con labels formateados
 const movimientos = [
@@ -269,36 +271,42 @@ const generarReporte = async () => {
   }
 };
 
+const getBase64ImageFromURL = (url) => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.setAttribute('crossOrigin', 'anonymous');
+    img.onload = () => {
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const dataURL = canvas.toDataURL('image/png');
+      resolve(dataURL);
+    };
+    img.onerror = error => reject(error);
+    img.src = url;
+  });
+};
+
 // Función para descargar el PDF
-const descargarPDF = () => {
+const descargarPDF = async () => {
   if (!datosReporte.value) {
     error.value = 'No hay datos para generar el PDF';
     return;
   }
 
-  // Crear nuevo documento PDF en orientación horizontal
+  const logoBase64 = await getBase64ImageFromURL(imgMarcaAgua);
+
   const doc = new jsPDF({
     orientation: 'p',
     unit: 'mm',
     format: 'letter'
   });
 
-  // Configuración de encabezados de columnas
-  const headers = [
-    'Periodo',
-    'Medicina Interna',
-    'Medicina Cirugía',
-    'Infectología',
-    'Pabellón',
-    'Neuro Trauma',
-    'Ginecología',
-    'Neonatología',
-    'Pediatría',
-    'Onco Pediatría',
-    'UCIM',
-    'UTI Pediatría',
-    'UTI Adultos',
-    'Total'
+  const headers = 
+  [
+    'Periodo', 'Medicina Interna', 'Medicina Cirugía', 'Infectología', 'Pabellón', 'Neuro Trauma',
+    'Ginecología', 'Neonatología', 'Pediatría', 'Onco Pediatría', 'UCIM', 'UTI Pediatría', 'UTI Adultos','Total'
   ];
 
   let isFirstPage = true;
@@ -316,6 +324,32 @@ const descargarPDF = () => {
       doc.addPage();
     }
     isFirstPage = false;
+
+    // --- LÓGICA DE MARCA DE AGUA ---
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const imgWidth = 140; // Ajusta el tamaño según desees
+    const imgHeight = 45; 
+    
+    // Guardar el estado actual para no afectar al resto del texto
+    doc.saveGraphicsState();
+    // Establecer opacidad (0.1 es muy suave)
+    doc.setGState(new doc.GState({ opacity: 0.1 }));
+    
+    doc.addImage(
+      logoBase64, 
+      'PNG', 
+      (pageWidth - imgWidth) / 2, // Centrado horizontal
+      (pageHeight - imgHeight) / 2, // Centrado vertical
+      imgWidth, 
+      imgHeight,
+      undefined,
+      'FAST'
+    );
+    
+    // Restaurar el estado para que la tabla y títulos tengan opacidad 1
+    doc.restoreGraphicsState();
+    // -------------------------------
 
     // Título de la página
     doc.setFontSize(12);
@@ -409,7 +443,7 @@ const descargarPDF = () => {
     doc.setFontSize(8);
     doc.setFont('helvetica', 'italic');
     doc.text(
-      `Página ${pageCount} - Generado el ${new Date().toLocaleDateString()}`,
+      `Página ${pageCount} - Elaborado por Williams Alvarez Zabala, el ${new Date().toLocaleDateString()}`,
       14,
       doc.internal.pageSize.height - 10
     );
