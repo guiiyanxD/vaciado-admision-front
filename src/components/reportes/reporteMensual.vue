@@ -278,9 +278,9 @@ const descargarPDF = () => {
 
   // Crear nuevo documento PDF en orientación horizontal
   const doc = new jsPDF({
-    orientation: 'landscape',
+    orientation: 'p',
     unit: 'mm',
-    format: 'a4'
+    format: 'letter'
   });
 
   // Configuración de encabezados de columnas
@@ -318,12 +318,12 @@ const descargarPDF = () => {
     isFirstPage = false;
 
     // Título de la página
-    doc.setFontSize(16);
+    doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text(`Reporte Mensual - ${movimiento.label}`, 14, 15);
 
     // Subtítulo con rango de fechas
-    doc.setFontSize(10);
+    doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.text(`Período: ${fechaInicio.value} al ${fechaFin.value}`, 14, 22);
 
@@ -374,7 +374,7 @@ const descargarPDF = () => {
       theme: 'grid',
       styles: {
         fontSize: 8,
-        cellPadding: 2,
+        cellPadding: 1,
         overflow: 'linebreak',
         halign: 'center'
       },
@@ -398,7 +398,7 @@ const descargarPDF = () => {
           data.cell.styles.fillColor = [102, 126, 234]; // Color azul (#667eea)
           data.cell.styles.textColor = [255, 255, 255]; // Texto blanco
           data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fontSize = 9;
+          data.cell.styles.fontSize = 8;
         }
       },
       margin: { top: 28, left: 14, right: 14 }
