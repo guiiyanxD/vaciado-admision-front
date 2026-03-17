@@ -30,9 +30,37 @@ const routes = [
     component: () => import('@/components/reportes/reporteMensual.vue'),
     meta: {
       title: 'Reporte Mensual',
-      requiresAuth: true // si usas autenticación
+      requiresAuth: true 
     }
-  }
+  },
+  {
+    path: '/personal/gestion',
+    name: 'GestionPersonal',
+    component: () => import('@/components/gestionarPersonal.vue'),
+    meta: {
+      title: 'Gestión de Personal',
+      requiresAuth: false 
+    }
+  },
+  {
+    path: '/compensaciones/gestion',
+    name: 'GestionCompensaciones',
+    component: () => import('@/components/registroCompensaciones.vue'),
+    meta: {
+      title: 'Registro de Compensaciones',
+      requiresAuth: false 
+    }
+  },
+  {
+    path: '/compensaciones/resumen',
+    name: 'ResumenCompensaciones',
+    component: () => import('@/components/resumenCompensaciones.vue'),
+    meta: {
+      title: 'Resumen de Compensaciones',
+      requiresAuth: false 
+    }
+  },
+  
 ]
 
 const router = createRouter({

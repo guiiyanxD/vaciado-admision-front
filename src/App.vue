@@ -19,6 +19,22 @@
         <li class="nav-item">
           <a class="nav-link" href="#">  <router-link style="text-decoration: none; color: aliceblue; " to="/reportes/mensual">📊 Reporte Mensual</router-link></a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">  <router-link style="text-decoration: none; color: aliceblue; " to="/personal/gestion"> Registro de Personal</router-link></a>
+        </li>
+        <div class="dropdown">
+          <a class="btn btn-dark dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            Compensaciones
+          </a>
+          <ul class="dropdown-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="#">  <router-link style="text-decoration: none; color: aliceblue; " to="/compensaciones/resumen"> Resumen de Compensaciones</router-link></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#">  <router-link style="text-decoration: none; color: aliceblue; " to="/compensaciones/gestion"> Registro de Compensaciones</router-link></a>
+            </li>
+          </ul>
+        </div>
       </ul>
     </div>
   </div>
