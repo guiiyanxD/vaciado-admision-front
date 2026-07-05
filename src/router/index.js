@@ -1,28 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import FormularioView from '../views/FormularioView.vue' 
 
 const routes = [
-  
   {
     path: '/',
-    name: 'formulario',
-    component: FormularioView
+    name: 'home',
+    component: () => import('../views/HomeView.vue')
   },
   {
-    path: '/about',
-    name: 'about',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/AboutView.vue')
+    path: '/censo',
+    name: 'formulario',
+    component: () => import('../views/FormularioView.vue')
   },
   {
     path: '/buscar',
     name: 'buscar',
-    // route level code-splitting
-    // this generates a separate chunk (about.[hash].js) for this route
-    // which is lazy-loaded when the route is visited.
-    component: () => import(/* webpackChunkName: "about" */ '../views/BuscarView.vue')
+    component: () => import('../views/BuscarView.vue')
   },
   {
     path: '/reportes/mensual',
@@ -30,7 +22,25 @@ const routes = [
     component: () => import('@/components/reportes/reporteMensual.vue'),
     meta: {
       title: 'Reporte Mensual',
-      requiresAuth: true 
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/reportes/camas-prestadas',
+    name: 'ReporteCamasPrestadas',
+    component: () => import('@/components/reportes/reporteCamasPrestadas.vue'),
+    meta: {
+      title: 'Reporte de Camas Prestadas',
+      requiresAuth: true
+    }
+  },
+  {
+    path: '/reportes/kpis',
+    name: 'DashboardKpis',
+    component: () => import('@/components/reportes/dashboardKpis.vue'),
+    meta: {
+      title: 'Dashboard de KPIs',
+      requiresAuth: true
     }
   },
   {
@@ -39,7 +49,7 @@ const routes = [
     component: () => import('@/components/gestionarPersonal.vue'),
     meta: {
       title: 'Gestión de Personal',
-      requiresAuth: false 
+      requiresAuth: false
     }
   },
   {
@@ -48,7 +58,7 @@ const routes = [
     component: () => import('@/components/registroCompensaciones.vue'),
     meta: {
       title: 'Registro de Compensaciones',
-      requiresAuth: false 
+      requiresAuth: false
     }
   },
   {
@@ -57,10 +67,18 @@ const routes = [
     component: () => import('@/components/resumenCompensaciones.vue'),
     meta: {
       title: 'Resumen de Compensaciones',
-      requiresAuth: false 
+      requiresAuth: false
     }
   },
-  
+  {
+    path: '/compensaciones/descuento',
+    name: 'CompensacionesDescuento',
+    component: () => import('@/components/compensacionesDescuento.vue'),
+    meta: {
+      title: 'Descontar Horas de Compensación',
+      requiresAuth: false
+    }
+  },
 ]
 
 const router = createRouter({

@@ -3,6 +3,7 @@ import App from './App.vue'
 import router from './router'
 import Toast from 'vue-toastification'
 import 'vue-toastification/dist/index.css'
+import '@/assets/theme.css'
 
 const app = createApp(App)
 
@@ -21,4 +22,4 @@ app.use(Toast, {
     rtl: false
 })
 
-app.use(router).use(router).mount('#app')
+app.use(router).mount('#app')

@@ -21,8 +21,8 @@
             
             <div class="input-wrapper">
               <label for="fechaFin">Fecha Fin:</label>
-              <input 
-                type="date" 
+              <input
+                type="date"
                 id="fechaFin"
                 v-model="fechaFin"
                 :disabled="loading"
@@ -30,11 +30,25 @@
             </div>
           </div>
 
-          <button 
-            @click="generarReporte" 
+          <div class="form-check mb-3">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="detalleDiario"
+              v-model="detalle"
+              :disabled="loading"
+            />
+            <label class="form-check-label" for="detalleDiario">
+              Mostrar detalle diario (si se desmarca, se resume por mes)
+            </label>
+          </div>
+
+          <button
+            @click="generarReporte"
             :disabled="loading || !fechaInicio || !fechaFin"
             class="btn btn-primary"
           >
+            <span v-if="loading" class="spinner-border spinner-border-sm me-1"></span>
             {{ loading ? 'Generando...' : 'Generar Reporte' }}
           </button>
         </div>
@@ -46,8 +60,8 @@
 
         <!-- Loading spinner -->
         <div v-if="loading" class="loading-spinner">
-          <div class="spinner"></div>
-          <p>Cargando datos...</p>
+          <div class="spinner-border text-primary"></div>
+          <p class="mt-2">Cargando datos...</p>
         </div>
 
         <!-- Vista previa de datos -->
@@ -143,315 +157,78 @@
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue';
-import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+<script>
 import imgMarcaAgua from '@/assets/cps_logo.png';
+import { reporteMensual as reporteMensualRequest } from '@/services/censoService';
+import { generarPdfReporte } from '@/services/pdfReporteGenerator';
+import { MOVIMIENTOS, calcularTotales as calcularTotalesUtil } from '@/utils/reporteMensualConfig';
 
-// Asegúrate de que esta constante esté definida en tu proyecto
-// o reemplázala con tu URL base
-import API_BASE_URL from '../config/api'; 
+export default {
+  name: 'ReporteMensual',
 
-// Estado reactivo
-const fechaInicio = ref('');
-const fechaFin = ref('');
-const loading = ref(false);
-const error = ref(null);
-const datosReporte = ref(null);
-const movimientoActivo = ref('ingreso');
-const canvas = document.createElement('canvas');
-
-// Definición de movimientos con labels formateados
-const movimientos = [
-  { key: 'ingreso', label: 'Ingreso' },
-  { key: 'ingreso_traslado', label: 'Ingreso por Traslado' },
-  { key: 'egreso', label: 'Egreso' },
-  { key: 'egreso_traslado', label: 'Egreso por Traslado' },
-  { key: 'obito', label: 'Óbito' },
-  { key: 'aislamiento', label: 'Aislamiento' },
-  { key: 'bloqueada', label: 'Bloqueada' },
-  { key: 'total', label: 'Total' }
-];
-
-// Función para obtener el label de un movimiento
-const getMovimientoLabel = (key) => {
-  return movimientos.find(m => m.key === key)?.label || key;
-};
-
-// Función para calcular totales de una tabla
-const calcularTotales = (datos) => {
-  if (!datos || datos.length === 0) {
+  data() {
     return {
-      medicina_interna: 0,
-      medicina_cirugia: 0,
-      infectologia: 0,
-      pabellon: 0,
-      neuro_trauma: 0,
-      ginecologia: 0,
-      neonatologia: 0,
-      pediatria: 0,
-      onco_pediatria: 0,
-      ucim: 0,
-      uti_pediatria: 0,
-      uti_adultos: 0,
-      total: 0
+      fechaInicio: '',
+      fechaFin: '',
+      detalle: true,
+      loading: false,
+      error: null,
+      datosReporte: null,
+      movimientoActivo: 'ingreso',
+      movimientos: MOVIMIENTOS
     };
-  }
+  },
 
-  return datos.reduce((totales, fila) => {
-    totales.medicina_interna += Number(fila.medicina_interna) || 0;
-    totales.medicina_cirugia += Number(fila.medicina_cirugia) || 0;
-    totales.infectologia += Number(fila.infectologia) || 0;
-    totales.pabellon += Number(fila.pabellon) || 0;
-    totales.neuro_trauma += Number(fila.neuro_trauma) || 0;
-    totales.ginecologia += Number(fila.ginecologia) || 0;
-    totales.neonatologia += Number(fila.neonatologia) || 0;
-    totales.pediatria += Number(fila.pediatria) || 0;
-    totales.onco_pediatria += Number(fila.onco_pediatria) || 0;
-    totales.ucim += Number(fila.ucim) || 0;
-    totales.uti_pediatria += Number(fila.uti_pediatria) || 0;
-    totales.uti_adultos += Number(fila.uti_adultos) || 0;
-    totales.total += Number(fila.total) || 0;
-    return totales;
-  }, {
-    medicina_interna: 0,
-    medicina_cirugia: 0,
-    infectologia: 0,
-    pabellon: 0,
-    neuro_trauma: 0,
-    ginecologia: 0,
-    neonatologia: 0,
-    pediatria: 0,
-    onco_pediatria: 0,
-    ucim: 0,
-    uti_pediatria: 0,
-    uti_adultos: 0,
-    total: 0
-  });
-};
+  methods: {
+    getMovimientoLabel(key) {
+      return this.movimientos.find(m => m.key === key)?.label || key;
+    },
 
-// Función para generar el reporte
-const generarReporte = async () => {
-  if (!fechaInicio.value || !fechaFin.value) {
-    error.value = 'Por favor, seleccione ambas fechas';
-    return;
-  }
+    calcularTotales(datos) {
+      return calcularTotalesUtil(datos);
+    },
 
-  const data = {
-    fechaInicio: fechaInicio.value,
-    fechaFin: fechaFin.value
-  };
+    generarReporte() {
+      if (!this.fechaInicio || !this.fechaFin) {
+        this.error = 'Por favor, seleccione ambas fechas';
+        return;
+      }
 
-  loading.value = true;
-  error.value = null;
-  datosReporte.value = null;
+      this.loading = true;
+      this.error = null;
+      this.datosReporte = null;
 
-  try {
-    const response = await fetch(`${API_BASE_URL}/reporte-mensual`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(data)
-    });
+      reporteMensualRequest({ fechaInicio: this.fechaInicio, fechaFin: this.fechaFin, detalle: this.detalle })
+        .then(result => {
+          if (result.status === 'success') {
+            this.datosReporte = result.data;
+          } else {
+            this.error = result.message || 'Error al obtener el reporte';
+          }
+        })
+        .catch(err => {
+          this.error = 'Error de conexión con el servidor';
+          console.error('Error:', err);
+        })
+        .finally(() => { this.loading = false; });
+    },
 
-    const result = await response.json();
+    descargarPDF() {
+      if (!this.datosReporte) {
+        this.error = 'No hay datos para generar el PDF';
+        return;
+      }
 
-    if (result.status === 'success') {
-      datosReporte.value = result.data;
-    } else {
-      error.value = result.message || 'Error al obtener el reporte';
+      generarPdfReporte({
+        datosReporte: this.datosReporte,
+        fechaInicio: this.fechaInicio,
+        fechaFin: this.fechaFin,
+        detalle: this.detalle,
+        movimientos: this.movimientos,
+        logoUrl: imgMarcaAgua
+      });
     }
-  } catch (err) {
-    error.value = 'Error de conexión con el servidor';
-    console.error('Error:', err);
-  } finally {
-    loading.value = false;
   }
-};
-
-const getBase64ImageFromURL = (url) => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.setAttribute('crossOrigin', 'anonymous');
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0);
-      const dataURL = canvas.toDataURL('image/png');
-      resolve(dataURL);
-    };
-    img.onerror = error => reject(error);
-    img.src = url;
-  });
-};
-
-// Función para descargar el PDF
-const descargarPDF = async () => {
-  if (!datosReporte.value) {
-    error.value = 'No hay datos para generar el PDF';
-    return;
-  }
-
-  const logoBase64 = await getBase64ImageFromURL(imgMarcaAgua);
-
-  const doc = new jsPDF({
-    orientation: 'p',
-    unit: 'mm',
-    format: 'letter'
-  });
-
-  const headers = 
-  [
-    'Periodo', 'Medicina Interna', 'Medicina Cirugía', 'Infectología', 'Pabellón', 'Neuro Trauma',
-    'Ginecología', 'Neonatología', 'Pediatría', 'Onco Pediatría', 'UCIM', 'UTI Pediatría', 'UTI Adultos','Total'
-  ];
-
-  let isFirstPage = true;
-
-  // Iterar sobre cada movimiento y crear una página por movimiento
-  movimientos.forEach((movimiento) => {
-    const datos = datosReporte.value[movimiento.key];
-
-    if (!datos || datos.length === 0) {
-      return; // Saltar si no hay datos
-    }
-
-    // Agregar nueva página (excepto para la primera)
-    if (!isFirstPage) {
-      doc.addPage();
-    }
-    isFirstPage = false;
-
-    // --- LÓGICA DE MARCA DE AGUA ---
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const imgWidth = 140; // Ajusta el tamaño según desees
-    const imgHeight = 45; 
-    
-    // Guardar el estado actual para no afectar al resto del texto
-    doc.saveGraphicsState();
-    // Establecer opacidad (0.1 es muy suave)
-    doc.setGState(new doc.GState({ opacity: 0.1 }));
-    
-    doc.addImage(
-      logoBase64, 
-      'PNG', 
-      (pageWidth - imgWidth) / 2, // Centrado horizontal
-      (pageHeight - imgHeight) / 2, // Centrado vertical
-      imgWidth, 
-      imgHeight,
-      undefined,
-      'FAST'
-    );
-    
-    // Restaurar el estado para que la tabla y títulos tengan opacidad 1
-    doc.restoreGraphicsState();
-    // -------------------------------
-
-    // Título de la página
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Reporte Mensual - ${movimiento.label}`, 14, 15);
-
-    // Subtítulo con rango de fechas
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Período: ${fechaInicio.value} al ${fechaFin.value}`, 14, 22);
-
-    // Preparar datos para la tabla
-    const tableData = datos.map(fila => [
-      fila.periodo || '-',
-      fila.medicina_interna || 0,
-      fila.medicina_cirugia || 0,
-      fila.infectologia || 0,
-      fila.pabellon || 0,
-      fila.neuro_trauma || 0,
-      fila.ginecologia || 0,
-      fila.neonatologia || 0,
-      fila.pediatria || 0,
-      fila.onco_pediatria || 0,
-      fila.ucim || 0,
-      fila.uti_pediatria || 0,
-      fila.uti_adultos || 0,
-      fila.total || 0
-    ]);
-
-    // Calcular totales
-    const totales = calcularTotales(datos);
-    
-    // Agregar fila de totales
-    tableData.push([
-      'TOTAL',
-      totales.medicina_interna,
-      totales.medicina_cirugia,
-      totales.infectologia,
-      totales.pabellon,
-      totales.neuro_trauma,
-      totales.ginecologia,
-      totales.neonatologia,
-      totales.pediatria,
-      totales.onco_pediatria,
-      totales.ucim,
-      totales.uti_pediatria,
-      totales.uti_adultos,
-      totales.total
-    ]);
-
-    // Generar tabla con autoTable
-    doc.autoTable({
-      startY: 28,
-      head: [headers],
-      body: tableData,
-      theme: 'grid',
-      styles: {
-        fontSize: 8,
-        cellPadding: 1,
-        overflow: 'linebreak',
-        halign: 'center'
-      },
-      headStyles: {
-        fillColor: [41, 128, 185],
-        textColor: 255,
-        fontStyle: 'bold',
-        halign: 'center'
-      },
-      columnStyles: {
-        0: { halign: 'center', cellWidth: 22 }, // Periodo
-        13: { fontStyle: 'bold', fillColor: [236, 240, 241] } // Total
-      },
-      alternateRowStyles: {
-        fillColor: [245, 245, 245]
-      },
-      // Estilos para la última fila (totales)
-      didParseCell: function(data) {
-        // La última fila es la de totales
-        if (data.row.index === tableData.length - 1) {
-          data.cell.styles.fillColor = [102, 126, 234]; // Color azul (#667eea)
-          data.cell.styles.textColor = [255, 255, 255]; // Texto blanco
-          data.cell.styles.fontStyle = 'bold';
-          data.cell.styles.fontSize = 8;
-        }
-      },
-      margin: { top: 28, left: 14, right: 14 }
-    });
-
-    // Agregar pie de página
-    const pageCount = doc.internal.getNumberOfPages();
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'italic');
-    doc.text(
-      `Página ${pageCount} - Elaborado por Williams Alvarez Zabala, el ${new Date().toLocaleDateString()}`,
-      14,
-      doc.internal.pageSize.height - 10
-    );
-  });
-
-  // Descargar el PDF
-  const nombreArchivo = `reporte_mensual_${fechaInicio.value}_${fechaFin.value}.pdf`;
-  doc.save(nombreArchivo);
 };
 </script>
 
@@ -462,17 +239,9 @@ const descargarPDF = async () => {
   margin: 0 auto;
 }
 
-.card {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
 .card-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--color-primary-darker);
   color: white;
-  padding: 20px;
 }
 
 .card-header h2 {
@@ -520,41 +289,6 @@ const descargarPDF = async () => {
   cursor: not-allowed;
 }
 
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
-}
-
-.btn-success {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-  color: white;
-}
-
-.btn-success:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(17, 153, 142, 0.4);
-}
-
 .alert {
   padding: 12px 16px;
   border-radius: 4px;
@@ -562,29 +296,14 @@ const descargarPDF = async () => {
 }
 
 .alert-error {
-  background-color: #fee;
-  color: #c33;
-  border: 1px solid #fcc;
+  background-color: #fbe9e7;
+  color: var(--color-danger);
+  border: 1px solid #f3c8c2;
 }
 
 .loading-spinner {
   text-align: center;
   padding: 40px;
-}
-
-.spinner {
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #667eea;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 15px;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 .preview-section {
@@ -627,13 +346,13 @@ const descargarPDF = async () => {
 }
 
 .tab:hover {
-  color: #667eea;
-  background-color: #f8f9fa;
+  color: var(--color-primary-dark);
+  background-color: var(--color-primary-tint);
 }
 
 .tab.active {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: var(--color-primary-dark);
+  border-bottom-color: var(--color-primary);
   font-weight: 500;
 }
 
@@ -667,7 +386,7 @@ const descargarPDF = async () => {
 }
 
 .data-table th {
-  background-color: #667eea;
+  background-color: var(--color-primary-darker);
   color: white;
   font-weight: 600;
   position: sticky;
@@ -676,27 +395,27 @@ const descargarPDF = async () => {
 }
 
 .data-table tbody tr:nth-child(even) {
-  background-color: #f8f9fa;
+  background-color: var(--color-bg);
 }
 
 .data-table tbody tr:hover {
-  background-color: #e9ecef;
+  background-color: var(--color-primary-tint);
 }
 
 .data-table td:last-child {
   font-weight: 600;
-  background-color: #f0f0f0;
+  background-color: var(--color-bg);
 }
 
 .data-table .totals-row {
-  background-color: #667eea !important;
+  background-color: var(--color-primary) !important;
   color: white;
   font-weight: bold;
-  border-top: 3px solid #333;
+  border-top: 3px solid var(--color-primary-darker);
 }
 
 .data-table .totals-row td {
-  background-color: #667eea !important;
+  background-color: var(--color-primary) !important;
   color: white;
   font-size: 14px;
   padding: 12px 8px;

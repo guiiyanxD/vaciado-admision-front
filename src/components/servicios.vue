@@ -30,7 +30,7 @@
 </template>
 
 <script>
-    import API_BASE_URL from './config/api'; 
+    import { fetchServicios as fetchServiciosCatalogo } from '@/composables/useCatalogos';
     export default{
         name: 'serviciosHospital',
         description: 'Componente que maneja los servicios',
@@ -57,12 +57,9 @@
         emits: ['update:modelValue'],
         methods: {
             fetchServicios(){
-                //fetch('/api/servicios')
-                fetch(`${API_BASE_URL}/servicios`)
-                .then(response => response.json())
+                fetchServiciosCatalogo()
                 .then(data => {
                     this.servicios = data.data;
-                    console.log('Servicios fetched:', data.data);
                 })
                 .catch(error => {
                     console.error('Error fetching servicios:', error);

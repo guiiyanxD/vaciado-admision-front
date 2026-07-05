@@ -3,23 +3,15 @@
         
         <div class="row">
             <div class="col-md-12">
-                <div class="text-center">
-                    <h1>Registro diario por servicio</h1>  
-                </div>
+                <h1 class="accent-header">Censo diario</h1>
+                <p class="text-muted">Registrá los movimientos del día por servicio.</p>
             </div>
         </div>
-        
-        <hr>
 
         <div class="row">
             <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title">Calendario</h5>
-                    </div>
-                    <div class="card-body">
-                        <form v-on:submit.prevent="verificaGuarda">
-                            <div class="col-lg-12 g-2 mb-3">
+                <form v-on:submit.prevent="verificaGuarda">
+                    <div class="col-lg-12 g-2 mb-3">
                                 <div class="row">
                                     <!-- COLUMNA IZQUIERDA: Datos principales del censo -->
                                     <div class="col-lg-7 g-2 mb-3">
@@ -30,8 +22,18 @@
                                         </div>
                                         <div class="row g-2 mb-3">
                                             <div class="col-md">
-                                                <div class="form-floating"> 
-                                                    <input class="form-control" type="date" id="fecha" name="fecha" v-model="censo.fecha" autofocus required>
+                                                <div class="form-floating">
+                                                    <input
+                                                        class="form-control"
+                                                        type="date"
+                                                        id="fecha"
+                                                        name="fecha"
+                                                        v-model="censo.fecha"
+                                                        :min="rangoFechasEditable.min"
+                                                        :max="rangoFechasEditable.max"
+                                                        autofocus
+                                                        required
+                                                    >
                                                     <label for="fecha">Fecha:</label>
                                                 </div>
                                             </div>
@@ -111,74 +113,76 @@
                                             </div>
                                         </div>
 
-                                        <!-- Mensaje si no hay camas prestadas -->
-                                        <div v-if="camasPrestadas.length === 0" class="alert alert-info">
-                                            <small>No hay camas prestadas registradas. Haga clic en "Agregar" para agregar una.</small>
-                                        </div>
+                                        <div class="camas-prestadas-lista">
+                                            <!-- Mensaje si no hay camas prestadas -->
+                                            <div v-if="camasPrestadas.length === 0" class="alert alert-info mb-0">
+                                                <small>No hay camas prestadas registradas. Haga clic en "Agregar" para agregar una.</small>
+                                            </div>
 
-                                        <!-- Lista dinámica de camas prestadas -->
-                                        <div 
-                                            v-for="(cama, index) in camasPrestadas" 
-                                            :key="index" 
-                                            class="card mb-3 border-secondary">
-                                            <div class="card-body p-3">
-                                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                                    <small class="text-muted fw-bold">Cama Prestada #{{ index + 1 }}</small>
-                                                    <button 
-                                                        type="button" 
-                                                        class="btn btn-danger btn-sm"
-                                                        @click="eliminarCamaPrestada(index)"
-                                                        title="Eliminar">
-                                                        <i class="bi bi-trash"></i>
-                                                    </button>
-                                                </div>
+                                            <!-- Lista dinámica de camas prestadas -->
+                                            <div
+                                                v-for="(cama, index) in camasPrestadas"
+                                                :key="index"
+                                                class="card mb-3 border-secondary">
+                                                <div class="card-body p-3">
+                                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                                        <small class="text-muted fw-bold">Cama Prestada #{{ index + 1 }}</small>
+                                                        <button
+                                                            type="button"
+                                                            class="btn btn-danger btn-sm"
+                                                            @click="eliminarCamaPrestada(index)"
+                                                            title="Eliminar">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </div>
 
-                                                <div class="row g-2 mb-2">
-                                                    <div class="col-12">
-                                                        <div class="form-floating">
-                                                            <select 
-                                                                class="form-select"
-                                                                :id="'especialidad_' + index"
-                                                                v-model="cama.especialidad"
-                                                                :required="camasPrestadas.length > 0">
-                                                                <option disabled selected :value="null">Seleccione</option>
-                                                                <option 
-                                                                    v-for="especialidad in especialidades" 
-                                                                    :key="especialidad.id" 
-                                                                    :value="especialidad.nombre">
-                                                                    {{ especialidad.nombre }}
-                                                                </option>
-                                                            </select>
-                                                            <label :for="'especialidad_' + index">Especialidad</label>
+                                                    <div class="row g-2 mb-2">
+                                                        <div class="col-12">
+                                                            <div class="form-floating">
+                                                                <select
+                                                                    class="form-select"
+                                                                    :id="'especialidad_' + index"
+                                                                    v-model="cama.especialidad"
+                                                                    :required="camasPrestadas.length > 0">
+                                                                    <option disabled selected :value="null">Seleccione</option>
+                                                                    <option
+                                                                        v-for="especialidad in especialidades"
+                                                                        :key="especialidad.id"
+                                                                        :value="especialidad.nombre">
+                                                                        {{ especialidad.nombre }}
+                                                                    </option>
+                                                                </select>
+                                                                <label :for="'especialidad_' + index">Especialidad</label>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
 
-                                                <div class="row g-2 mb-2">
-                                                    <div class="col-6">
-                                                        <div class="form-floating">
-                                                            <input 
-                                                                class="form-control" 
-                                                                type="number" 
-                                                                :id="'cantidad_' + index"
-                                                                v-model.number="cama.cantidad"
-                                                                min="1"
-                                                                :required="camasPrestadas.length > 0">
-                                                            <label :for="'cantidad_' + index">Cantidad</label>
+                                                    <div class="row g-2 mb-2">
+                                                        <div class="col-6">
+                                                            <div class="form-floating">
+                                                                <input
+                                                                    class="form-control"
+                                                                    type="number"
+                                                                    :id="'cantidad_' + index"
+                                                                    v-model.number="cama.cantidad"
+                                                                    min="1"
+                                                                    :required="camasPrestadas.length > 0">
+                                                                <label :for="'cantidad_' + index">Cantidad</label>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        <div class="form-floating">
-                                                            <select 
-                                                                class="form-select"
-                                                                :id="'tipo_ingreso_' + index"
-                                                                v-model="cama.tipo_ingreso"
-                                                                :required="camasPrestadas.length > 0">
-                                                                <option disabled selected :value="null">Seleccione</option>
-                                                                <option value="DIRECTO">DIRECTO</option>
-                                                                <option value="TRASLADO">TRASLADO</option>
-                                                            </select>
-                                                            <label :for="'tipo_ingreso_' + index">Tipo</label>
+                                                        <div class="col-6">
+                                                            <div class="form-floating">
+                                                                <select
+                                                                    class="form-select"
+                                                                    :id="'tipo_ingreso_' + index"
+                                                                    v-model="cama.tipo_ingreso"
+                                                                    :required="camasPrestadas.length > 0">
+                                                                    <option disabled selected :value="null">Seleccione</option>
+                                                                    <option value="DIRECTO">DIRECTO</option>
+                                                                    <option value="TRASLADO">TRASLADO</option>
+                                                                </select>
+                                                                <label :for="'tipo_ingreso_' + index">Tipo</label>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -192,17 +196,16 @@
                                     <div class="col-md">
                                         <div class="form-group">
                                             <div class="d-grid gap-2">
-                                                <button class="btn btn-success btn-lg" type="submit">
-                                                    <i class="bi bi-save"></i> Guardar Registro
+                                                <button class="btn btn-success btn-lg" type="submit" :disabled="guardando">
+                                                    <span v-if="guardando" class="spinner-border spinner-border-sm me-1"></span>
+                                                    <i v-else class="bi bi-save"></i> Guardar Registro
                                                 </button>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>                                                    
-                        </form>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
@@ -211,12 +214,14 @@
 <script>
     import diaAnterior from '@/components/diaAnterior.vue';
     import servicios from '@/components/servicios.vue';
-    import API_BASE_URL from './config/api'; 
     import { useToast } from 'vue-toastification'
+    import { fetchServicios, fetchEspecialidades } from '@/composables/useCatalogos';
+    import { guardarCenso } from '@/services/censoService';
+    import { calcularRangoFechasEditable } from '@/utils/fechasEditables';
 
     export default {
         name: 'formularioVaciado',
-        
+
         components: {
             diaAnterior,
             servicios
@@ -226,6 +231,7 @@
         },
         data() {
             return {
+                rangoFechasEditable: calcularRangoFechasEditable(),
                 censo: {
                     fecha: null,
                     servicio: null,
@@ -247,10 +253,7 @@
                 especialidades: [],
                 
                 camasLibres: 0,
-                //toastClass: null,
-                //toastIcon: null,
-                //toastMessage:null
-
+                guardando: false
             }
         },
 
@@ -338,14 +341,8 @@
                 };
 
                 // Enviar datos al backend
-                fetch(`${API_BASE_URL}/verificarYGuardar`, {
-                    method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify(data)
-                })
-                .then(response => response.json())
+                this.guardando = true;
+                guardarCenso(data)
                 .then(data => {
                     if (data.status === 'failed') {
                         this.toast.error(data.message);
@@ -355,10 +352,9 @@
                     }
                 })
                 .catch((error) => {
-                    this.$toast.error('Error en la conexión: ' + error, {
-                    timeout: 5000
-                    });
-                });
+                    this.toast.error('Error en la conexión: ' + error);
+                })
+                .finally(() => { this.guardando = false; });
             },
 
             limpiarFormulario() {
@@ -388,8 +384,7 @@
             // ========== CATÁLOGOS ==========
             
             getServicios() {
-                fetch(`${API_BASE_URL}/servicios`)
-                    .then(response => response.json())
+                fetchServicios()
                     .then(data => {
                         this.servicios = [];
                         if (data.status === 'success') {
@@ -402,12 +397,10 @@
             },
 
             getEspecialidades() {
-                fetch(`${API_BASE_URL}/especialidades`)
-                    .then(response => response.json())
+                fetchEspecialidades()
                     .then(data => {
                         this.especialidades = [];
                         if (data.status === 'success') {
-                            console.log(data.data);
                             this.especialidades = data.data;
                         }
                     })
@@ -437,6 +430,14 @@
 </script>
 
 <style scoped>
+/* Contenedor con scroll propio: evita que la lista de camas prestadas
+   haga crecer el scroll de toda la página a medida que se agregan más. */
+.camas-prestadas-lista {
+    max-height: 50vh;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+
 /* Estilos adicionales para mejorar la UI de camas prestadas */
 .card.border-secondary {
     border-width: 2px;
@@ -444,8 +445,8 @@
 }
 
 .card.border-secondary:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-color: #0d6efd !important;
+    box-shadow: 0 4px 8px rgba(31, 74, 44, 0.15);
+    border-color: var(--color-primary) !important;
 }
 
 .btn-sm i {

@@ -2,12 +2,11 @@
     <div class="container">
 
         <div class="row">
-            <div class="col-md-12 text-center">
-                <h1>Gestión de Personal</h1>
+            <div class="col-md-12">
+                <h1 class="accent-header">Gestión de personal</h1>
+                <p class="text-muted">Administrá el listado de funcionarios activos e inactivos.</p>
             </div>
         </div>
-
-        <hr>
 
         <!-- Botón agregar + buscador -->
         <div class="row mb-3">
@@ -57,7 +56,7 @@
                                     <td>{{ p.apellidos }}</td>
                                     <td>{{ p.nombres }}</td>
                                     <td class="text-center">
-                                        <span :class="p.activo ? 'badge bg-success' : 'badge bg-secondary'">
+                                        <span :class="['pill-status', p.activo ? 'pill-positive' : 'pill-neutral']">
                                             {{ p.activo ? 'Activo' : 'Inactivo' }}
                                         </span>
                                     </td>
@@ -198,8 +197,8 @@
 </template>
 
 <script>
-const API_BASE_URL = process.env.VUE_APP_API_URL;
 import { useToast } from 'vue-toastification'
+import { getPersonal, crearPersonal, actualizarPersonal, eliminarPersonal as eliminarPersonalRequest } from '@/services/compensacionesService';
 
 export default {
     name: 'GestionPersonal',
@@ -251,8 +250,7 @@ export default {
 
         cargarPersonal() {
             this.cargando = true;
-            fetch(`${API_BASE_URL}/compensaciones/personal`)
-                .then(r => r.json())
+            getPersonal()
                 .then(data => {
                     if (data.status === 'success') {
                         this.personal = data.data;
@@ -297,22 +295,16 @@ export default {
             if (!this.validarForm()) return;
 
             this.guardando = true;
-            const url    = `${API_BASE_URL}/compensaciones/personal`;
-            const method = this.modoEdicion ? 'PUT' : 'POST';
+            const peticion = this.modoEdicion ? actualizarPersonal(this.form) : crearPersonal(this.form);
 
-            fetch(url, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.form)
-            })
-            .then(r => r.json())
+            peticion
             .then(data => {
                 if (data.status === 'success') {
                     this.toast.success(data.message);
                     this.modalPersonalInst.hide();
                     this.cargarPersonal();
                 } else {
-                    this.toast.errores(data.message);
+                    this.toast.error(data.message);
                 }
             })
             .catch(err => this.toast.error('Error de conexión: ' + err))
@@ -328,12 +320,7 @@ export default {
             if (!this.personalAEliminar) return;
             this.eliminando = true;
 
-            fetch(`${API_BASE_URL}/compensaciones/personal`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id: this.personalAEliminar.id })
-            })
-            .then(r => r.json())
+            eliminarPersonalRequest(this.personalAEliminar.id)
             .then(data => {
                 if (data.status === 'success') {
                     this.toast.success(data.message);

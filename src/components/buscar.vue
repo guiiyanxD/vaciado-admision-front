@@ -2,10 +2,8 @@
     <div class="container">
         <div class="row">
             <div class="col-md-12">
-                <div class="text-center">
-                    <h1>Buscar</h1>  
-                </div>
-                <hr>
+                <h1 class="accent-header">Buscar registros</h1>
+                <p class="text-muted">Consultá el censo histórico por fecha, rango o servicio.</p>
             </div>
         </div>
         <div class="row">
@@ -59,27 +57,15 @@
                                 </div>
                             </div>
                             <div class="row g-2 mb-3">
-                                <div class="col-md"> 
+                                <div class="col-md">
                                     <input
                                         class="form-check-input"
-                                        type="checkbox" 
-                                        id="rangoFechas" 
-                                        name="RangoFechas" 
+                                        type="checkbox"
+                                        id="rangoFechas"
+                                        name="RangoFechas"
                                         v-model="this.rangoFechas"
                                     />
                                     <label for="rangoFechas">Rango de fechas</label>
-                                </div>
-                            </div>
-                            <div class="row g-2 mb-3">
-                                <div class="col-md"> 
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox" 
-                                        id="agruparMes" 
-                                        name="AgruparMes" 
-                                        v-model="this.agruparMes"
-                                    />
-                                    <label for="agruparMes"> Agrupar por mes</label>
                                 </div>
                             </div>
                             <div class="row g-2 mb-3">
@@ -96,15 +82,29 @@
                 </div>
             </div>
             <div class="col-md-9">
-                <div v-if="this.error">
-                    <div class="card">
-                        <div class="card-header bg-danger text-white">
-                            <p>Error en los parametros de busqueda</p>
-                        </div>
-                    </div>
+                <div v-if="this.error" class="alert alert-danger">
+                    {{ this.error }}
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-success table-striped table-hover table-bordered">
+
+                <div v-if="loading" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Buscando registros...</p>
+                </div>
+
+                <div v-else-if="!haBuscado" class="text-center text-muted py-5">
+                    <i class="bi bi-clipboard-data fs-1 d-block mb-2"></i>
+                    Completá los filtros y presioná Buscar.
+                </div>
+
+                <div v-else-if="resultados.length === 0" class="text-center text-muted py-5">
+                    <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                    No hay datos para los filtros seleccionados.
+                </div>
+
+                <div v-else class="table-responsive resultados-scroll">
+                    <table class="table table-striped table-hover table-bordered mb-0">
                         <thead>
                             <tr>
                                 <td colspan="2"></td>
@@ -123,12 +123,11 @@
                                 <td>Aislamiento</td>
                                 <td>Bloqueada</td>
                                 <td>Total</td>
-                                <!-- <td>Acciones</td> --> 
-
-                            </tr>  
+                                <td>Acciones</td>
+                            </tr>
                         </thead>
-                        <tbody v-if="this.resultados != []">
-                            <tr v-for="fila in resultados" :key="fila.servicio" >
+                        <tbody>
+                            <tr v-for="fila in resultados" :key="fila.servicio + fila.fecha">
                                 <td>{{ fila.fecha }}</td>
                                 <td>{{ fila.servicio }}</td>
                                 <td>{{ fila.ingreso }}</td>
@@ -139,38 +138,50 @@
                                 <td>{{ fila.aislamiento }}</td>
                                 <td>{{ fila.bloqueada }}</td>
                                 <td>{{ fila.total }}</td>
-                                <!-- <td><button class="btn btn-light">Editar</button></td> --> 
-                            </tr>   
+                                <td>
+                                    <button
+                                        class="btn btn-sm btn-outline-primary"
+                                        type="button"
+                                        disabled
+                                        title="Editar registro (próximamente)"
+                                    >
+                                        <i class="bi bi-pencil-square"></i>
+                                    </button>
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
-                    </div>
-                
-                <div v-if="this.resultados == null">
-                        <h5>No hay Datos para mostrar</h5>
-                    </div>
-                <div v-if="this.loading == true" class="text-center">
-                    <div class="spinner-border text-success" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
                 </div>
             </div>
         </div>
-        <br>
     </div>
 </template>
-<style>
+<style scoped>
     thead td {
         font-weight: bold;
         padding: 8px;
     }
-    td{
+    td {
         text-align: center;
+    }
+    .resultados-scroll {
+        max-height: 65vh;
+        overflow-y: auto;
+    }
+    /* Solo la fila de encabezados de columna queda fija; la fila agrupadora
+       (Ingresos/Egresos) se desplaza con el resto para evitar solapamientos
+       entre dos filas sticky. */
+    .resultados-scroll thead tr:last-child td {
+        position: sticky;
+        top: 0;
+        background-color: var(--color-surface);
+        z-index: 2;
     }
 </style>
 <script>
     import servicios from '@/components/servicios.vue';
-    import API_BASE_URL from './config/api'; 
-    
+    import { buscarCenso } from '@/services/censoService';
+
     export default{
         name: 'buscarCenso',
         description: 'Componente para buscar registros por fecha y servicio',
@@ -181,26 +192,12 @@
                 servicioBuscar: "",
                 resultados: [],
                 loading: false,
-                error: false,
+                error: null,
+                haBuscado: false,
                 rangoFechas: false,
-                agruparMes: false,
-            }
-        },
-        props: {
-            'servicios': {
-                type: Array,
-                default: () => []
             }
         },
         methods: {
-            /**
-             * Comprueba que la fechaInicio sea menor a la fechaFin
-             * @returns true si la fechaInicio es menor a la fichaFin
-             */
-            verificarFechas(){
-                return this.fechaInicio <= this.fechaFin;
-            },
-
             /**
              * Realiza la busqueda de registros segun los parametros seleccionados
              */
@@ -211,23 +208,19 @@
                         fechaInicio: this.fechaInicio,
                         fechaFin: !this.rangoFechas ? null : this.fechaFin,
                         servicioBuscar: this.servicioBuscar,
-                        agruparMes: this.agruparMes ?? false,
                         rangoFechas: this.rangoFechas ?? false
                     };
                     this.loading = true;
                     this.error = null;
-                    fetch(`${API_BASE_URL}/buscar`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(data)
-                    })
-                    .then(response => response.json())
+                    buscarCenso(data)
                     .then(data => {
-                        this.resultados = data.data || null;
-                        this.loading = false;
+                        this.resultados = data.data || [];
+                        this.haBuscado = true;
                     })
+                    .catch(() => {
+                        this.error = 'Error de conexión con el servidor';
+                    })
+                    .finally(() => { this.loading = false; })
                 } else {
                     this.error = 'Por favor, seleccione una fecha y un servicio';
                 }

@@ -2,12 +2,11 @@
     <div class="container">
 
         <div class="row">
-            <div class="col-md-12 text-center">
-                <h1>Registro de Compensaciones</h1>
+            <div class="col-md-12">
+                <h1 class="accent-header">Registro de compensaciones</h1>
+                <p class="text-muted">Cargá horas programadas, pagadas y permisos por mes.</p>
             </div>
         </div>
-
-        <hr>
 
         <!-- Selector de persona / período -->
         <div class="row justify-content-center">
@@ -261,8 +260,8 @@
 </template>
 
 <script>
-const API_BASE_URL = process.env.VUE_APP_API_URL;
 import { useToast } from 'vue-toastification'
+import { getPersonalActivo, buscarRegistro as buscarRegistroRequest, guardarRegistro as guardarRegistroRequest, eliminarRegistro as eliminarRegistroRequest } from '@/services/compensacionesService';
 
 const MESES = [
     { valor: 1,  nombre: 'Enero' },
@@ -340,8 +339,7 @@ export default {
     methods: {
 
         cargarPersonal() {
-            fetch(`${API_BASE_URL}/compensaciones/personal/activo`)
-                .then(r => r.json())
+            getPersonalActivo()
                 .then(data => {
                     if (data.status === 'success') this.personal = data.data;
                 })
@@ -358,16 +356,11 @@ export default {
             this.registroExistente = false;
             this.resetForm();
 
-            fetch(`${API_BASE_URL}/compensaciones/registro/buscar`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    personal_id: this.seleccion.personal_id,
-                    anho:        this.seleccion.anho,
-                    mes:         this.seleccion.mes
-                })
+            buscarRegistroRequest({
+                personal_id: this.seleccion.personal_id,
+                anho:        this.seleccion.anho,
+                mes:         this.seleccion.mes
             })
-            .then(r => r.json())
             .then(data => {
                 if (data.status === 'success' && data.data) {
                     this.form.horas_programadas = parseFloat(data.data.horas_programadas);
@@ -423,19 +416,14 @@ export default {
             if (!this.validarForm()) return;
             this.guardando = true;
 
-            fetch(`${API_BASE_URL}/compensaciones/registro`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    personal_id:      this.seleccion.personal_id,
-                    anho:             this.seleccion.anho,
-                    mes:              this.seleccion.mes,
-                    horas_programadas: this.form.horas_programadas,
-                    horas_pagadas:     this.form.horas_pagadas,
-                    permisos_horas:    this.form.permisos_horas
-                })
+            guardarRegistroRequest({
+                personal_id:      this.seleccion.personal_id,
+                anho:             this.seleccion.anho,
+                mes:              this.seleccion.mes,
+                horas_programadas: this.form.horas_programadas,
+                horas_pagadas:     this.form.horas_pagadas,
+                permisos_horas:    this.form.permisos_horas
             })
-            .then(r => r.json())
             .then(data => {
                 if (data.status === 'success') {
                     this.toast.success(data.message);
@@ -455,16 +443,11 @@ export default {
         eliminarRegistro() {
             this.eliminando = true;
 
-            fetch(`${API_BASE_URL}/compensaciones/registro`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    personal_id: this.seleccion.personal_id,
-                    anho:        this.seleccion.anho,
-                    mes:         this.seleccion.mes
-                })
+            eliminarRegistroRequest({
+                personal_id: this.seleccion.personal_id,
+                anho:        this.seleccion.anho,
+                mes:         this.seleccion.mes
             })
-            .then(r => r.json())
             .then(data => {
                 if (data.status === 'success') {
                     this.toast.success(data.message);
